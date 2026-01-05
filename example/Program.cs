@@ -34,7 +34,7 @@ try
     var users = await userRepo.GetAllAsync();
     logger.LogInformation("Found {Count} users", users.TotalResults);
     
-    foreach (var user in users.Results.Take(3))
+    foreach (var user in users.Results)
     {
         logger.LogInformation("User: {Name} - Liked {LikedCount} posts, Disliked {DislikedCount} posts", 
             user.Name, user.LikedPosts.Count, user.DislikedPosts.Count);
@@ -43,7 +43,7 @@ try
     var posts = await postRepo.GetAllAsync();
     logger.LogInformation("Found {Count} posts", posts.TotalResults);
     
-    foreach (var post in posts.Results.Take(3))
+    foreach (var post in posts.Results)
     {
         logger.LogInformation("Post: {Title} - {LikedCount} likes, {DislikedCount} dislikes", 
             post.Title, post.LikedBy.Count, post.DislikedBy.Count);

@@ -4,7 +4,7 @@ Neo4j Repository pattern implementation for .NET.
 
 ## Overview
 
-This library provides a generic base repository implementation for Neo4j graph databases, enabling easy CRUD operations, relationship management, and search functionality.
+This library provides a repository implementation for Neo4j graph databases, enabling easy CRUD operations, relationship management, and search functionality.
 
 ## Packages
 
@@ -51,11 +51,13 @@ var entities = await repository.GetAllAsync();
 - Relationship management
 - Search and filtering
 - Soft delete support
-- Automatic relationship loading via GraphFieldAttribute
+- Automatic relationship loading.
 
 ## Example
 
 See the `example/` directory for a complete working example with a social network graph (Users, Posts, Likes, Dislikes).
+
+![adasda](assets/user_graph.png)
 
 ## License
 

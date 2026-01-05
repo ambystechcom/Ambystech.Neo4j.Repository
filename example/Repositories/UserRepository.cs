@@ -1,4 +1,3 @@
-using Ambystech.Neo4j.Repository;
 using Ambystech.Neo4j.Repository.Converters;
 using Ambystech.Neo4j.Repository.Example.Models;
 using Microsoft.Extensions.Logging;

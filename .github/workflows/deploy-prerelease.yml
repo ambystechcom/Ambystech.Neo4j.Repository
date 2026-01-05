@@ -6,7 +6,6 @@ on:
       - develop
     paths:
       - 'lib/lib/**'
-      - 'lib/Ambystech.Neo4j.Repository.sln'
     paths-ignore:
       - 'lib/contracts/**'
   pull_request:
@@ -15,7 +14,6 @@ on:
       - develop
     paths:
       - 'lib/lib/**'
-      - 'lib/Ambystech.Neo4j.Repository.sln'
     paths-ignore:
       - 'lib/contracts/**'
 
