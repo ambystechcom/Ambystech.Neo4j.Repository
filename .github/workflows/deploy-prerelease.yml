@@ -64,7 +64,7 @@ jobs:
         working-directory: lib
       
       - name: Pack with prerelease version
-        run: dotnet pack Ambystech.Neo4j.Repository.csproj --configuration Release --no-build --output ./nupkg -p:Version=${{ steps.gitversion.outputs.NuGetVersion }}
+        run: dotnet pack Ambystech.Neo4j.Repository.csproj --configuration Release --no-build --output ./artifacts -p:Version=${{ steps.gitversion.outputs.NuGetVersion }}
         working-directory: lib
       
       - name: Upload artifact
