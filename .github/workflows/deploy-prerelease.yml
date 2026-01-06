@@ -65,7 +65,6 @@ jobs:
       
       - name: Pack with prerelease version
         run: dotnet pack Ambystech.Neo4j.Repository.csproj --configuration Release --no-build --output ./artifacts -p:Version=${{ steps.gitversion.outputs.NuGetVersion }}
-        working-directory: lib
       
       - name: Upload artifact
         uses: actions/upload-artifact@v4
