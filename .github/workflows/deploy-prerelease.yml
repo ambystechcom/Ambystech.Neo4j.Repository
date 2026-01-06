@@ -1,0 +1,112 @@
+name: Deploy Main Repository Prerelease
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'lib/lib/**'
+    paths-ignore:
+      - 'lib/contracts/**'
+  pull_request:
+    types: [closed]
+    branches:
+      - develop
+    paths:
+      - 'lib/lib/**'
+    paths-ignore:
+      - 'lib/contracts/**'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: Extract version from csproj
+        id: get_version
+        run: |
+          BASE_VERSION=$(grep -oP '<Version>\K[^<]+' lib/lib/Ambystech.Neo4j.Repository.csproj)
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          PRERELEASE_VERSION="${BASE_VERSION}-preview-${TIMESTAMP}"
+          echo "base_version=$BASE_VERSION" >> $GITHUB_OUTPUT
+          echo "prerelease_version=$PRERELEASE_VERSION" >> $GITHUB_OUTPUT
+          echo "Package version: $PRERELEASE_VERSION"
+        working-directory: lib
+      
+      - name: Restore dependencies
+        run: dotnet restore lib/lib/Ambystech.Neo4j.Repository.csproj
+        working-directory: lib
+      
+      - name: Build
+        run: dotnet build lib/lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-restore
+        working-directory: lib
+      
+      - name: Pack with prerelease version
+        run: dotnet pack lib/lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-build --output ./nupkg -p:Version=${{ steps.get_version.outputs.prerelease_version }}
+        working-directory: lib
+      
+      - name: Publish to NuGet
+        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        working-directory: lib
+      
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Create Git Tag
+        id: create_tag
+        run: |
+          TAG="v${{ steps.get_version.outputs.prerelease_version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+            echo "tag_created=false" >> $GITHUB_OUTPUT
+          else
+            git tag -a "$TAG" -m "Prerelease v${{ steps.get_version.outputs.prerelease_version }}"
+            git push origin "$TAG"
+            echo "tag_created=true" >> $GITHUB_OUTPUT
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Generate Changelog
+        id: changelog
+        if: steps.create_tag.outputs.tag_created == 'true'
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 --match "v*" --exclude "v*-preview-*" 2>/dev/null || git describe --tags --abbrev=0 --match "v*-preview-*" 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            CHANGELOG=$(git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          fi
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      
+      - name: Create GitHub Release
+        if: steps.create_tag.outputs.tag_created == 'true'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.create_tag.outputs.tag }}
+          release_name: Prerelease v${{ steps.get_version.outputs.prerelease_version }}
+          body: |
+            ## Changes
+            
+            ${{ steps.changelog.outputs.changelog }}
+          draft: false
+          prerelease: true
+

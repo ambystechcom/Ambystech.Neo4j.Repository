@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>Ambystech.Neo4j.Repository.Contracts</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Ambystech</Authors>
+    <Description>Contracts for Neo4j repository pattern</Description>
+  </PropertyGroup>
+</Project>
+
