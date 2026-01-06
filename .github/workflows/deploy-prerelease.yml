@@ -12,13 +12,18 @@ on:
       - develop
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 jobs:
   deploy:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.gitversion.outputs.semVer }}
+      nuget_version: ${{ steps.gitversion.outputs.nuGetVersionV2 }}
+      is_prerelease: ${{ contains(steps.gitversion.outputs.nuGetVersionV2, '-') }}
+
     steps:
       - uses: actions/checkout@v4
         with:
