@@ -29,16 +29,17 @@ jobs:
         with:
           dotnet-version: '9.0.x'
       
-      - name: Extract version from csproj
-        id: get_version
-        run: |
-          BASE_VERSION=$(grep -oP '<Version>\K[^<]+' lib/Ambystech.Neo4j.Repository.csproj)
-          TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          PRERELEASE_VERSION="${BASE_VERSION}-preview-${TIMESTAMP}"
-          echo "base_version=$BASE_VERSION" >> $GITHUB_OUTPUT
-          echo "prerelease_version=$PRERELEASE_VERSION" >> $GITHUB_OUTPUT
-          echo "Package version: $PRERELEASE_VERSION"
-        working-directory: lib
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.9.7
+        with:
+          versionSpec: '5.x'
+      
+      - name: Determine Version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0.9.7
+        with:
+          useConfigFile: true
+          configFilePath: GitVersion.yml
       
       - name: Restore dependencies
         run: dotnet restore lib/Ambystech.Neo4j.Repository.csproj
@@ -49,7 +50,7 @@ jobs:
         working-directory: lib
       
       - name: Pack with prerelease version
-        run: dotnet pack lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-build --output ./nupkg -p:Version=${{ steps.get_version.outputs.prerelease_version }}
+        run: dotnet pack lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-build --output ./nupkg -p:Version=${{ steps.gitversion.outputs.NuGetVersion }}
         working-directory: lib
       
       - name: Publish to NuGet
@@ -64,12 +65,12 @@ jobs:
       - name: Create Git Tag
         id: create_tag
         run: |
-          TAG="v${{ steps.get_version.outputs.prerelease_version }}"
+          TAG="v${{ steps.gitversion.outputs.FullSemVer }}"
           if git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "Tag $TAG already exists, skipping"
             echo "tag_created=false" >> $GITHUB_OUTPUT
           else
-            git tag -a "$TAG" -m "Prerelease v${{ steps.get_version.outputs.prerelease_version }}"
+            git tag -a "$TAG" -m "Prerelease ${{ steps.gitversion.outputs.FullSemVer }}"
             git push origin "$TAG"
             echo "tag_created=true" >> $GITHUB_OUTPUT
             echo "tag=$TAG" >> $GITHUB_OUTPUT
@@ -79,7 +80,7 @@ jobs:
         id: changelog
         if: steps.create_tag.outputs.tag_created == 'true'
         run: |
-          PREV_TAG=$(git describe --tags --abbrev=0 --match "v*" --exclude "v*-preview-*" 2>/dev/null || git describe --tags --abbrev=0 --match "v*-preview-*" 2>/dev/null || echo "")
+          PREV_TAG=$(git describe --tags --abbrev=0 --match "v*" --exclude "v*-alpha.*" 2>/dev/null || git describe --tags --abbrev=0 --match "v*-alpha.*" 2>/dev/null || echo "")
           if [ -z "$PREV_TAG" ]; then
             CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
           else
@@ -96,7 +97,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.create_tag.outputs.tag }}
-          release_name: Prerelease v${{ steps.get_version.outputs.prerelease_version }}
+          release_name: Prerelease ${{ steps.gitversion.outputs.FullSemVer }}
           body: |
             ## Changes
             
