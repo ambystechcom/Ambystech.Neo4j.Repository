@@ -40,68 +40,46 @@ jobs:
         with:
           useConfigFile: true
           configFilePath: GitVersion.yml
+
+      - name: Display calculated version
+        run: |
+          echo "Version: ${{ steps.gitversion.outputs.semVer }}"
+          echo "NuGetVersion: ${{ steps.gitversion.outputs.nuGetVersionV2 }}"
+
+      - name: Update csproj version
+        run: |
+          sed -i 's/<Version>.*<\/Version>/<Version>${{ steps.gitversion.outputs.nuGetVersionV2 }}<\/Version>/' lib/Ambystech.Neo4j.Repository.csproj
       
       - name: Restore dependencies
-        run: dotnet restore lib/Ambystech.Neo4j.Repository.csproj
+        run: dotnet restore Ambystech.Neo4j.Repository.csproj
         working-directory: lib
       
       - name: Build
-        run: dotnet build lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-restore
+        run: dotnet build Ambystech.Neo4j.Repository.csproj --configuration Release --no-restore
         working-directory: lib
       
       - name: Pack with prerelease version
-        run: dotnet pack lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-build --output ./nupkg -p:Version=${{ steps.gitversion.outputs.NuGetVersion }}
+        run: dotnet pack Ambystech.Neo4j.Repository.csproj --configuration Release --no-build --output ./nupkg -p:Version=${{ steps.gitversion.outputs.NuGetVersion }}
         working-directory: lib
-      
-      - name: Publish to NuGet
-        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-        working-directory: lib
-      
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-      
-      - name: Create Git Tag
-        id: create_tag
-        run: |
-          TAG="v${{ steps.gitversion.outputs.FullSemVer }}"
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists, skipping"
-            echo "tag_created=false" >> $GITHUB_OUTPUT
-          else
-            git tag -a "$TAG" -m "Prerelease ${{ steps.gitversion.outputs.FullSemVer }}"
-            git push origin "$TAG"
-            echo "tag_created=true" >> $GITHUB_OUTPUT
-            echo "tag=$TAG" >> $GITHUB_OUTPUT
-          fi
-      
-      - name: Generate Changelog
-        id: changelog
-        if: steps.create_tag.outputs.tag_created == 'true'
-        run: |
-          PREV_TAG=$(git describe --tags --abbrev=0 --match "v*" --exclude "v*-alpha.*" 2>/dev/null || git describe --tags --abbrev=0 --match "v*-alpha.*" 2>/dev/null || echo "")
-          if [ -z "$PREV_TAG" ]; then
-            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
-          else
-            CHANGELOG=$(git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --no-merges)
-          fi
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-      
-      - name: Create GitHub Release
-        if: steps.create_tag.outputs.tag_created == 'true'
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-prerelease:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
         with:
-          tag_name: ${{ steps.create_tag.outputs.tag }}
-          release_name: Prerelease ${{ steps.gitversion.outputs.FullSemVer }}
-          body: |
-            ## Changes
-            
-            ${{ steps.changelog.outputs.changelog }}
-          draft: false
-          prerelease: true
+          name: nuget-package-prerelease
+          path: ./artifacts
+
+      - name: Publish to NuGet
+        run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+      
+      - name: Display prerelease info
+        run: |
+          echo "✅ Prerelease package published to NuGet"
+          echo "Version: ${{ needs.build-and-test.outputs.nuget_version }}"
+          echo ""
+          echo "To install this prerelease:"
+          echo "dotnet add package Ambystech.Elaris.UI --version ${{ needs.build-and-test.outputs.nuget_version }}"
 
