@@ -32,21 +32,21 @@ jobs:
       - name: Extract version from csproj
         id: get_version
         run: |
-          VERSION=$(grep -oP '<Version>\K[^<]+' lib/lib/Ambystech.Neo4j.Repository.csproj)
+          VERSION=$(grep -oP '<Version>\K[^<]+' lib/Ambystech.Neo4j.Repository.csproj)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Package version: $VERSION"
         working-directory: lib
       
       - name: Restore dependencies
-        run: dotnet restore lib/lib/Ambystech.Neo4j.Repository.csproj
+        run: dotnet restore lib/Ambystech.Neo4j.Repository.csproj
         working-directory: lib
       
       - name: Build
-        run: dotnet build lib/lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-restore
+        run: dotnet build lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-restore
         working-directory: lib
       
       - name: Pack
-        run: dotnet pack lib/lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-build --output ./nupkg -p:Version=${{ steps.get_version.outputs.version }}
+        run: dotnet pack lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-build --output ./nupkg -p:Version=${{ steps.get_version.outputs.version }}
         working-directory: lib
       
       - name: Publish to NuGet

@@ -32,7 +32,7 @@ jobs:
       - name: Extract version from csproj
         id: get_version
         run: |
-          BASE_VERSION=$(grep -oP '<Version>\K[^<]+' lib/lib/Ambystech.Neo4j.Repository.csproj)
+          BASE_VERSION=$(grep -oP '<Version>\K[^<]+' lib/Ambystech.Neo4j.Repository.csproj)
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
           PRERELEASE_VERSION="${BASE_VERSION}-preview-${TIMESTAMP}"
           echo "base_version=$BASE_VERSION" >> $GITHUB_OUTPUT
@@ -41,15 +41,15 @@ jobs:
         working-directory: lib
       
       - name: Restore dependencies
-        run: dotnet restore lib/lib/Ambystech.Neo4j.Repository.csproj
+        run: dotnet restore lib/Ambystech.Neo4j.Repository.csproj
         working-directory: lib
       
       - name: Build
-        run: dotnet build lib/lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-restore
+        run: dotnet build lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-restore
         working-directory: lib
       
       - name: Pack with prerelease version
-        run: dotnet pack lib/lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-build --output ./nupkg -p:Version=${{ steps.get_version.outputs.prerelease_version }}
+        run: dotnet pack lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-build --output ./nupkg -p:Version=${{ steps.get_version.outputs.prerelease_version }}
         working-directory: lib
       
       - name: Publish to NuGet
