@@ -4,16 +4,12 @@ on:
   push:
     branches:
       - develop
-    paths:
-      - 'lib/lib/**'
     paths-ignore:
       - 'lib/contracts/**'
   pull_request:
     types: [closed]
     branches:
       - develop
-    paths:
-      - 'lib/lib/**'
     paths-ignore:
       - 'lib/contracts/**'
 
