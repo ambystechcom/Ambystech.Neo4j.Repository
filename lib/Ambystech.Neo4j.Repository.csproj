@@ -10,7 +10,7 @@
     <Authors>Ambystech</Authors>
     <Company>Ambystech</Company>
     <Copyright>Copyright © $(Authors) $([System.DateTime]::Now.Year)</Copyright>
-    <Description>Generic Neo4j repository pattern implementation</Description>
+    <Description>A lightweight and flexible generic repository pattern implementation for Neo4j, built in C# for .NET, designed to simplify data access, promote clean architecture, and enable reusable, maintainable graph-based applications.</Description>
     <PackageTags>neo4j;repository;pattern</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ambystechcom/Ambystech.Neo4j.Repository</PackageProjectUrl>
