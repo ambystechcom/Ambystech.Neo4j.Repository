@@ -10,8 +10,6 @@ on:
     types: [closed]
     branches:
       - main
-    paths-ignore:
-      - 'lib/contracts/**'
 
 permissions:
   contents: read
