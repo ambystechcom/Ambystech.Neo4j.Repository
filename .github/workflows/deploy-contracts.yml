@@ -5,18 +5,16 @@ on:
     branches:
       - main
       - develop
-    paths:
-      - 'lib/contracts/**'
+    paths-ignore:
+      - 'lib/**'
   pull_request:
     types: [closed]
     branches:
       - main
       - develop
-    paths:
-      - 'lib/contracts/**'
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 jobs:
@@ -33,13 +31,17 @@ jobs:
         with:
           dotnet-version: '9.0.x'
       
-      - name: Extract version from csproj
-        id: get_version
-        run: |
-          VERSION=$(grep -oP '<Version>\K[^<]+' lib/contracts/Ambystech.Neo4j.Repository.Contracts.csproj)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Package version: $VERSION"
-        working-directory: lib
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.9.7
+        with:
+          versionSpec: '5.x'
+      
+      - name: Determine Version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0.9.7
+        with:
+          useConfigFile: true
+          configFilePath: GitVersion.yml
       
       - name: Restore dependencies
         run: dotnet restore lib/contracts/Ambystech.Neo4j.Repository.Contracts.csproj
@@ -50,58 +52,25 @@ jobs:
         working-directory: lib
       
       - name: Pack
-        run: dotnet pack lib/contracts/Ambystech.Neo4j.Repository.Contracts.csproj --configuration Release --no-build --output ./nupkg -p:Version=${{ steps.get_version.outputs.version }}
+        run: dotnet pack lib/contracts/Ambystech.Neo4j.Repository.Contracts.csproj --configuration Release --no-build --output ./artifacts -p:Version=${{ steps.gitversion.outputs.NuGetVersion }}
         working-directory: lib
-      
-      - name: Publish to NuGet
-        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-        working-directory: lib
-      
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-      
-      - name: Create Git Tag
-        id: create_tag
-        run: |
-          TAG="contracts-v${{ steps.get_version.outputs.version }}"
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists, skipping"
-            echo "tag_created=false" >> $GITHUB_OUTPUT
-          else
-            git tag -a "$TAG" -m "Contracts v${{ steps.get_version.outputs.version }}"
-            git push origin "$TAG"
-            echo "tag_created=true" >> $GITHUB_OUTPUT
-            echo "tag=$TAG" >> $GITHUB_OUTPUT
-          fi
-      
-      - name: Generate Changelog
-        id: changelog
-        if: steps.create_tag.outputs.tag_created == 'true'
-        run: |
-          PREV_TAG=$(git describe --tags --abbrev=0 --match "contracts-v*" 2>/dev/null || echo "")
-          if [ -z "$PREV_TAG" ]; then
-            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
-          else
-            CHANGELOG=$(git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --no-merges)
-          fi
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-      
-      - name: Create GitHub Release
-        if: steps.create_tag.outputs.tag_created == 'true'
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ steps.create_tag.outputs.tag }}
-          release_name: Contracts v${{ steps.get_version.outputs.version }}
-          body: |
-            ## Changes
-            
-            ${{ steps.changelog.outputs.changelog }}
-          draft: false
-          prerelease: ${{ github.ref == 'refs/heads/develop' }}
+          name: nuget-package-contracts
+          path: ./artifacts/*.nupkg
+      
+  publish-contracts:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-package-contracts
+          path: ./artifacts
+
+      - name: Publish to NuGet
+        run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 

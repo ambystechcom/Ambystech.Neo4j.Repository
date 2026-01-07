@@ -50,12 +50,27 @@ jobs:
         working-directory: lib
       
       - name: Pack
-        run: dotnet pack lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-build --output ./nupkg -p:Version=${{ steps.gitversion.outputs.NuGetVersion }}
+        run: dotnet pack lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-build --output ./artifacts -p:Version=${{ steps.gitversion.outputs.NuGetVersion }}
         working-directory: lib
-      
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package-release
+          path: ./artifacts/*.nupkg
+
+  publish-release:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-package-release
+          path: ./artifacts
+
       - name: Publish to NuGet
-        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-        working-directory: lib
+        run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
       
       - name: Configure Git
         run: |
