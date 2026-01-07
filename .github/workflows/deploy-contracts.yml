@@ -44,16 +44,16 @@ jobs:
           configFilePath: GitVersion.yml
       
       - name: Restore dependencies
-        run: dotnet restore lib/contracts/Ambystech.Neo4j.Repository.Contracts.csproj
-        working-directory: lib
+        run: dotnet restore Ambystech.Neo4j.Repository.Contracts.csproj
+        working-directory: contracts
       
       - name: Build
-        run: dotnet build lib/contracts/Ambystech.Neo4j.Repository.Contracts.csproj --configuration Release --no-restore
-        working-directory: lib
+        run: dotnet build Ambystech.Neo4j.Repository.Contracts.csproj --configuration Release --no-restore
+        working-directory: contracts
       
       - name: Pack
-        run: dotnet pack lib/contracts/Ambystech.Neo4j.Repository.Contracts.csproj --configuration Release --no-build --output ./artifacts -p:Version=${{ steps.gitversion.outputs.NuGetVersion }}
-        working-directory: lib
+        run: dotnet pack Ambystech.Neo4j.Repository.Contracts.csproj --configuration Release --no-build --output ./artifacts -p:Version=${{ steps.gitversion.outputs.NuGetVersion }}
+        working-directory: contracts
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
