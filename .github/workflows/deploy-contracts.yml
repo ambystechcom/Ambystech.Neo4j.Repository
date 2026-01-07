@@ -52,8 +52,7 @@ jobs:
         working-directory: contracts
       
       - name: Pack
-        run: dotnet pack Ambystech.Neo4j.Repository.Contracts.csproj --configuration Release --no-build --output ./artifacts -p:Version=${{ steps.gitversion.outputs.NuGetVersion }}
-        working-directory: contracts
+        run: dotnet pack contracts/Ambystech.Neo4j.Repository.Contracts.csproj --configuration Release --no-build --output ./artifacts -p:Version=${{ steps.gitversion.outputs.NuGetVersion }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
