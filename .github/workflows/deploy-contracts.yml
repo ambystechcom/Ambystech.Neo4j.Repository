@@ -4,14 +4,12 @@ on:
   push:
     branches:
       - main
-      - develop
     paths-ignore:
       - 'lib/**'
   pull_request:
     types: [closed]
     branches:
       - main
-      - develop
 
 permissions:
   contents: write
