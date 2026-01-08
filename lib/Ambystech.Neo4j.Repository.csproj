@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     
-    <PackageId>Ambystech.Neo4j.Repository</PackageId>
+    <PackageId>Ambystech.Neo4j.Repository</PackageId> 
     <Version>1.0.0</Version>
     <Authors>Ambystech</Authors>
     <Company>Ambystech</Company>
@@ -21,12 +21,10 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Ambystech.Neo4j.Repository.Contracts" Version="0.1.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.10" />
     <PackageReference Include="Neo4j.Driver" Version="5.28.3" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\contracts\Ambystech.Neo4j.Repository.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
