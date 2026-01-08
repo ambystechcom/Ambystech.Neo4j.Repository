@@ -4,18 +4,12 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'lib/lib/**'
     paths-ignore:
       - 'lib/contracts/**'
   pull_request:
     types: [closed]
     branches:
       - main
-    paths:
-      - 'lib/lib/**'
-    paths-ignore:
-      - 'lib/contracts/**'
 
 permissions:
   contents: read
@@ -35,29 +29,48 @@ jobs:
         with:
           dotnet-version: '9.0.x'
       
-      - name: Extract version from csproj
-        id: get_version
-        run: |
-          VERSION=$(grep -oP '<Version>\K[^<]+' lib/lib/Ambystech.Neo4j.Repository.csproj)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Package version: $VERSION"
-        working-directory: lib
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.9.7
+        with:
+          versionSpec: '5.x'
+      
+      - name: Determine Version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0.9.7
+        with:
+          useConfigFile: true
+          configFilePath: GitVersion.yml
       
       - name: Restore dependencies
-        run: dotnet restore lib/lib/Ambystech.Neo4j.Repository.csproj
+        run: dotnet restore lib/Ambystech.Neo4j.Repository.csproj
         working-directory: lib
       
       - name: Build
-        run: dotnet build lib/lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-restore
+        run: dotnet build lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-restore
         working-directory: lib
       
       - name: Pack
-        run: dotnet pack lib/lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-build --output ./nupkg -p:Version=${{ steps.get_version.outputs.version }}
+        run: dotnet pack lib/Ambystech.Neo4j.Repository.csproj --configuration Release --no-build --output ./artifacts -p:Version=${{ steps.gitversion.outputs.NuGetVersion }}
         working-directory: lib
-      
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package-release
+          path: ./artifacts/*.nupkg
+
+  publish-release:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-package-release
+          path: ./artifacts
+
       - name: Publish to NuGet
-        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-        working-directory: lib
+        run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
       
       - name: Configure Git
         run: |
@@ -67,12 +80,12 @@ jobs:
       - name: Create Git Tag
         id: create_tag
         run: |
-          TAG="v${{ steps.get_version.outputs.version }}"
+          TAG="v${{ steps.gitversion.outputs.MajorMinorPatch }}"
           if git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "Tag $TAG already exists, skipping"
             echo "tag_created=false" >> $GITHUB_OUTPUT
           else
-            git tag -a "$TAG" -m "Release v${{ steps.get_version.outputs.version }}"
+            git tag -a "$TAG" -m "Release v${{ steps.gitversion.outputs.MajorMinorPatch }}"
             git push origin "$TAG"
             echo "tag_created=true" >> $GITHUB_OUTPUT
             echo "tag=$TAG" >> $GITHUB_OUTPUT
@@ -99,7 +112,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.create_tag.outputs.tag }}
-          release_name: Release v${{ steps.get_version.outputs.version }}
+          release_name: Release v${{ steps.gitversion.outputs.MajorMinorPatch }}
           body: |
             ## Changes
             
