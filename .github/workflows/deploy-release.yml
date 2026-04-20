@@ -18,8 +18,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
       nuget_version: ${{ steps.gitversion.outputs.NuGetVersion }}
+      major_minor_patch: ${{ steps.gitversion.outputs.MajorMinorPatch }}
       is_prerelease: ${{ contains(steps.gitversion.outputs.nuGetVersionV2, '-') }}
     steps:
       - uses: actions/checkout@v4
@@ -86,12 +86,12 @@ jobs:
       - name: Create Git Tag
         id: create_tag
         run: |
-          TAG="v${{ steps.gitversion.outputs.MajorMinorPatch }}"
+          TAG="v${{ needs.deploy.outputs.major_minor_patch }}"
           if git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "Tag $TAG already exists, skipping"
             echo "tag_created=false" >> $GITHUB_OUTPUT
           else
-            git tag -a "$TAG" -m "Release v${{ steps.gitversion.outputs.MajorMinorPatch }}"
+            git tag -a "$TAG" -m "Release v${{ needs.deploy.outputs.major_minor_patch }}"
             git push origin "$TAG"
             echo "tag_created=true" >> $GITHUB_OUTPUT
             echo "tag=$TAG" >> $GITHUB_OUTPUT
@@ -112,28 +112,25 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
       
       - name: Create GitHub Release
-        id: create_release
         if: steps.create_tag.outputs.tag_created == 'true'
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.create_tag.outputs.tag }}
-          release_name: Release v${{ steps.gitversion.outputs.MajorMinorPatch }}
+          name: Release v${{ needs.deploy.outputs.major_minor_patch }}
           body: |
-            ## Changes
-            
+            ## Changes in this Release
+
             ${{ steps.changelog.outputs.changelog }}
+
+            ## NuGet Package
+
+            This release is available on NuGet.org:
+            ```
+            dotnet add package Ambystech.Neo4j.Repository --version ${{ needs.deploy.outputs.nuget_version }}
+            ```
+          files: ./artifacts/Ambystech.Neo4j.Repository.${{ needs.deploy.outputs.nuget_version }}.nupkg
           draft: false
           prerelease: false
-
-      - name: Upload NuGet package to Release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/Ambystech.Neo4j.Repository.${{ steps.deploy.outputs.nuget_version }}.nupkg
-          asset_name: Ambystech.Neo4j.Repository.${{ steps.deploy.outputs.nuget_version }}.nupkg
-          asset_content_type: application/zip
 
