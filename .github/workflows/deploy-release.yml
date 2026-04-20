@@ -5,7 +5,8 @@ on:
     branches:
       - main
     paths-ignore:
-      - 'lib/contracts/**'
+      - 'contracts/**'
+      - '.github/workflows/**'
   pull_request:
     types: [closed]
     branches:

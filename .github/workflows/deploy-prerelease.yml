@@ -6,6 +6,7 @@ on:
       - develop
     paths-ignore:
       - 'contracts/**'
+      - '.github/workflows/**'
   pull_request:
     types: [closed]
     branches:
