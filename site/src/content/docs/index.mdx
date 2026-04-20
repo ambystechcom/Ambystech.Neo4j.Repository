@@ -1,0 +1,42 @@
+---
+title: Ambystech.Neo4j.Repository
+description: Neo4j Repository pattern implementation for .NET.
+template: splash
+hero:
+  tagline: A typed Repository pattern for Neo4j, shipped as two focused NuGet packages for .NET 8, .NET 9, and .NET 10.
+  image:
+    file: ../../assets/icon.png
+    alt: Ambystech.Neo4j.Repository
+  actions:
+    - text: Getting Started
+      link: /Ambystech.Neo4j.Repository/getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/ambystechcom/Ambystech.Neo4j.Repository
+      icon: external
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Highlights
+
+<CardGrid stagger>
+  <Card title="Generic CRUD" icon="rocket">
+    `IBaseGraphRepository<T>` covers create, read, update, soft and hard delete, count, and pagination out of the box.
+  </Card>
+  <Card title="Relationship-aware" icon="random">
+    Mark properties with `[GraphField]` to declare Neo4j relationships — incoming, outgoing, or both — and let the repository load them for you.
+  </Card>
+  <Card title="Soft delete" icon="close">
+    `deleted_at` is tracked on every node and filtered from default queries.
+  </Card>
+  <Card title="DI-friendly" icon="setting">
+    `AddNeo4jRepository()` wires the driver from configuration. Plug in your own `INodeConverter<T>` or reuse the default.
+  </Card>
+</CardGrid>
+
+## Packages
+
+- **`Ambystech.Neo4j.Repository`** — the repository implementation, extensions, and default converter.
+- **`Ambystech.Neo4j.Repository.Contracts`** — base classes, attributes, and search models you can reference from domain projects without pulling in the driver.

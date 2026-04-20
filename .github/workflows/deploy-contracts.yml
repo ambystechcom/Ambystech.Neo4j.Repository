@@ -6,12 +6,8 @@ on:
       - main
     paths-ignore:
       - 'lib/**'
+      - 'site/**'
       - '.github/workflows/**'
-  pull_request:
-    types: [closed]
-    branches:
-      - main
-      - develop
 
 permissions:
   contents: write
@@ -19,7 +15,6 @@ permissions:
 
 jobs:
   deploy:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,7 +24,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
       
       - name: Install GitVersion
         uses: gittools/actions/gitversion/setup@v0.9.7

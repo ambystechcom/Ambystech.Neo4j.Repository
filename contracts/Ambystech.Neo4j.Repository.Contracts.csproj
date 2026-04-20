@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <LangVersion>13.0</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -10,13 +10,14 @@
     <Authors>Ambystech</Authors>
     <Company>Ambystech</Company>
     <Copyright>Copyright © $(Authors) $([System.DateTime]::Now.Year)</Copyright>
-    <Description>Contracts for Neo4j repository pattern</Description>
-    <PackageTags>neo4j;graph-database;repository-pattern;clean-architecture;dotnet;csharp;cypher</PackageTags>
+    <Description>A lightweight and flexible generic repository pattern implementation for Neo4j, built in C# for .NET, designed to simplify data access, promote clean architecture, and enable reusable, maintainable graph-based applications.</Description>
+    <PackageTags>neo4j;repository;pattern;graph-database;repository-pattern;clean-architecture;dotnet;csharp;cypher</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ambystechcom/Ambystech.Neo4j.Repository</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ambystechcom/Ambystech.Neo4j.Repository</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>Ambystech.Neo4j.Repository.Contracts</RootNamespace>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
