@@ -1,0 +1,42 @@
+name: Build & Test
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Restore
+        run: dotnet restore Ambystech.Neo4j.Repository.sln
+
+      - name: Build
+        run: dotnet build Ambystech.Neo4j.Repository.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test Ambystech.Neo4j.Repository.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory ${{ github.workspace }}/TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults/**/*.trx
+          retention-days: 30

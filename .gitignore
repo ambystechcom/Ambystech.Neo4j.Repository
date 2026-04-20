@@ -55,3 +55,8 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Astro Starlight docs site
+site/node_modules/
+site/dist/
+site/.astro/
