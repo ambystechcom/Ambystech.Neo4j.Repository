@@ -11,7 +11,7 @@
     <Company>Ambystech</Company>
     <Copyright>Copyright © $(Authors) $([System.DateTime]::Now.Year)</Copyright>
     <Description>A lightweight and flexible generic repository pattern implementation for Neo4j, built in C# for .NET, designed to simplify data access, promote clean architecture, and enable reusable, maintainable graph-based applications.</Description>
-    <PackageTags>neo4j;repository;pattern</PackageTags>
+    <PackageTags>neo4j;repository;pattern;graph-database;repository-pattern;clean-architecture;dotnet;csharp;cypher</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ambystechcom/Ambystech.Neo4j.Repository</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ambystechcom/Ambystech.Neo4j.Repository</RepositoryUrl>
@@ -19,6 +19,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <RootNamespace>Ambystech.Neo4j.Repository</RootNamespace>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Ambystech.Neo4j.Repository.Contracts" Version="0.1.2" />
@@ -29,6 +30,7 @@
 
   <ItemGroup>
     <None Include="../README.md" Pack="true" PackagePath="\" Condition="Exists('../README.md')" />
+    <None Include="../icon.png" Pack="true" PackagePath="\" Condition="Exists('../icon.png')" />
   </ItemGroup>
 </Project>
 

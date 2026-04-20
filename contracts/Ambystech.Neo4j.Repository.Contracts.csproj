@@ -17,6 +17,14 @@
     <RepositoryUrl>https://github.com/ambystechcom/Ambystech.Neo4j.Repository</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
+
+  
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="\" Condition="Exists('../README.md')" />
+    <None Include="../icon.png" Pack="true" PackagePath="\" Condition="Exists('../icon.png')" />
+  </ItemGroup>
 </Project>
 

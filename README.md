@@ -1,4 +1,5 @@
 # Ambystech.Neo4j.Repository
+![Ambystech.Neo4j.Repository](https://github.com/ambystechcom/Ambystech.Neo4j.Repository/blob/main/icon.png?raw=true)
 
 Neo4j Repository pattern implementation for .NET.
 
@@ -57,7 +58,7 @@ var entities = await repository.GetAllAsync();
 
 See the `example/` directory for a complete working example with a social network graph (Users, Posts, Likes, Dislikes).
 
-![adasda](assets/user_graph.png)
+![Example Graph](https://github.com/ambystechcom/Ambystech.Neo4j.Repository/blob/main/assets/user_graph.png?raw=true)
 
 ## License
 
