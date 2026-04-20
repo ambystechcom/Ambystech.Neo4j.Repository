@@ -19,6 +19,10 @@ jobs:
   deploy:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      nuget_version: ${{ steps.gitversion.outputs.NuGetVersion }}
+      is_prerelease: ${{ contains(steps.gitversion.outputs.nuGetVersionV2, '-') }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -118,4 +122,14 @@ jobs:
             ${{ steps.changelog.outputs.changelog }}
           draft: false
           prerelease: false
+
+      - name: Upload NuGet package to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.deploy.outputs.upload_url }}
+          asset_path: ./artifacts/Ambystech.Neo4j.Repository.${{ steps.gitversion.outputs.NuGetVersion }}.nupkg
+          asset_name: Ambystech.Neo4j.Repository.${{ steps.gitversion.outputs.NuGetVersion }}.nupkg
+          asset_content_type: application/zip
 
